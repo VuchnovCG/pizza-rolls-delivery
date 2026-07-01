@@ -19,12 +19,12 @@ router.get('/', (req, res) => {
 
 // PUT /api/menu/:id — изменить товар (админ)
 router.put('/:id', (req, res) => {
-  const { name, description, price, is_available } = req.body;
+  const { name, description, price, image, is_available } = req.body;
   const db = getDb();
   db.prepare(`
-    UPDATE menu_items SET name = ?, description = ?, price = ?, is_available = ?
+    UPDATE menu_items SET name = ?, description = ?, price = ?, image = ?, is_available = ?
     WHERE id = ?
-  `).run(name, description, price, is_available ?? 1, req.params.id);
+  `).run(name, description, price, image || null, is_available ?? 1, req.params.id);
   res.json({ ok: true });
 });
 
