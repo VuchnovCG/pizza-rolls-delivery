@@ -9,7 +9,9 @@ export default function Categories({ categories, active, onSelect }) {
           onClick={() => onSelect(cat.slug)}
         >
           <span className="cat-icon">
-            {cat.items?.[0]?.image || '📦'}
+            {cat.items?.[0]?.image?.startsWith('/') || cat.items?.[0]?.image?.startsWith('http')
+              ? <img src={cat.items[0].image} alt="" style={{ width: 24, height: 24, objectFit: 'cover', borderRadius: 4 }} />
+              : (cat.items?.[0]?.image || '📦')}
           </span>
           {cat.name}
         </button>

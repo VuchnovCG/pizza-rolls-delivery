@@ -96,6 +96,18 @@ export default function Admin({ onNavigate }) {
     loadData()
   }
 
+  const uploadFile = async (file, target) => {
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    const data = await res.json()
+    if (data.url) {
+      target(data.url)
+    } else {
+      alert('Ошибка загрузки: ' + (data.error || 'неизвестно'))
+    }
+  }
+
   // Login screen
   if (!checked) {
     return (
@@ -235,8 +247,14 @@ export default function Admin({ onNavigate }) {
                 <input className="form-input" type="number" value={newItem.price} onChange={e => setNewItem(n => ({ ...n, price: Number(e.target.value) }))} />
               </div>
               <div style={{ flex: 1, minWidth: 80 }}>
-                <label className="form-label">Эмодзи</label>
-                <input className="form-input" value={newItem.image} onChange={e => setNewItem(n => ({ ...n, image: e.target.value }))} />
+                <label className="form-label">Фото</label>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  <input className="form-input" style={{ flex: 1 }} value={newItem.image} onChange={e => setNewItem(n => ({ ...n, image: e.target.value }))} placeholder="🍕 или /uploads/..." />
+                  <label className="btn-sm primary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px 10px', marginTop: 0 }}>
+                    📁
+                    <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f, url => setNewItem(n => ({ ...n, image: url }))) }} />
+                  </label>
+                </div>
               </div>
               <button className="btn-sm primary" style={{ padding: '10px 20px', marginTop: 4 }} onClick={addItem}>Добавить</button>
             </div>
@@ -249,7 +267,11 @@ export default function Admin({ onNavigate }) {
                 {cat.items.map(item => (
                   <div key={item.id} className="menu-edit-card">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <span style={{ fontSize: 24 }}>{editItems[item.id]?.image || item.image}</span>
+                      {editItems[item.id]?.image?.startsWith('/') || editItems[item.id]?.image?.startsWith('http') ? (
+                        <img src={editItems[item.id].image} alt="" style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }} />
+                      ) : (
+                        <span style={{ fontSize: 24 }}>{editItems[item.id]?.image || item.image}</span>
+                      )}
                       <input className="form-input" value={editItems[item.id]?.name || ''}
                         onChange={e => setEditItems(ei => ({ ...ei, [item.id]: { ...ei[item.id], name: e.target.value } }))} />
                     </div>
@@ -259,9 +281,15 @@ export default function Admin({ onNavigate }) {
                     <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
                       <input className="form-input" style={{ width: 100 }} type="number" value={editItems[item.id]?.price || 0}
                         onChange={e => setEditItems(ei => ({ ...ei, [item.id]: { ...ei[item.id], price: Number(e.target.value) } }))} />
-                      <input className="form-input" style={{ width: 70 }} value={editItems[item.id]?.image || ''}
-                        onChange={e => setEditItems(ei => ({ ...ei, [item.id]: { ...ei[item.id], image: e.target.value } }))}
-                        placeholder="Эмодзи" />
+                      <div style={{ flex: 1, display: 'flex', gap: 4 }}>
+                        <input className="form-input" style={{ flex: 1 }} value={editItems[item.id]?.image || ''}
+                          onChange={e => setEditItems(ei => ({ ...ei, [item.id]: { ...ei[item.id], image: e.target.value } }))}
+                          placeholder="🍕 или /uploads/..." />
+                        <label className="btn-sm primary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px 10px' }}>
+                          📁
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f, url => setEditItems(ei => ({ ...ei, [item.id]: { ...ei[item.id], image: url } }))) }} />
+                        </label>
+                      </div>
                     </div>
                     <div className="menu-actions">
                       <button className="btn-sm primary" onClick={() => saveItem(item.id)}>💾 Сохранить</button>
