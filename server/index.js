@@ -7,6 +7,7 @@ const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const paymentRoutes = require('./routes/payment');
 const uploadRoutes = require('./routes/upload');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -20,6 +21,7 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

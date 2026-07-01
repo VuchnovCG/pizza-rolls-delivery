@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './App.css'
 import Shop from './pages/Shop'
 import Admin from './pages/Admin'
+import ChatWidget from './components/ChatWidget'
 import { setBackButton } from './telegram.js'
 
 export default function App() {
@@ -20,5 +21,10 @@ export default function App() {
     return <Admin onNavigate={setPage} />
   }
 
-  return <Shop onNavigate={setPage} />
+  return (
+    <>
+      <Shop onNavigate={setPage} />
+      <ChatWidget />
+    </>
+  )
 }
