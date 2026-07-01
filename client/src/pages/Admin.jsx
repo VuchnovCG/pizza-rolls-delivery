@@ -14,6 +14,8 @@ export default function Admin({ onNavigate }) {
   const [editItems, setEditItems] = useState({})
   const [newItem, setNewItem] = useState({ category_id: 1, name: '', description: '', price: 200, image: '🍕' })
   const [checked, setChecked] = useState(false)
+  const [contextText, setContextText] = useState('')
+  const [contextSaved, setContextSaved] = useState(false)
 
   useEffect(() => {
     if (token) {
@@ -41,6 +43,22 @@ export default function Admin({ onNavigate }) {
     const edits = {}
     menuRes.forEach(cat => cat.items.forEach(item => { edits[item.id] = { ...item } }))
     setEditItems(edits)
+  }
+
+  const loadContext = async () => {
+    const res = await fetch('/api/admin/context', { headers: { 'Authorization': token } })
+    const data = await res.json()
+    if (data.context !== undefined) setContextText(data.context)
+  }
+
+  const saveContext = async () => {
+    await fetch('/api/admin/context', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, context: contextText })
+    })
+    setContextSaved(true)
+    setTimeout(() => setContextSaved(false), 2000)
   }
 
   const handleLogin = async (e) => {
@@ -153,6 +171,9 @@ export default function Admin({ onNavigate }) {
         </button>
         <button className={`admin-tab${tab === 'menu' ? ' active' : ''}`} onClick={() => { setTab('menu'); loadData() }}>
           🍕 Меню
+        </button>
+        <button className={`admin-tab${tab === 'context' ? ' active' : ''}`} onClick={() => { setTab('context'); loadContext() }}>
+          🧠 База знаний
         </button>
       </div>
 
@@ -317,6 +338,32 @@ export default function Admin({ onNavigate }) {
             ))}
           </div>
         </>
+      )}
+
+      {tab === 'context' && (
+        <div style={{ maxWidth: 700 }}>
+          <h3 style={{ marginBottom: 8, color: 'var(--emerald-light)', fontSize: 18 }}>🧠 База знаний для ИИ-консультанта</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+            Здесь ты можешь написать любую информацию о бизнесе: часы работы, зону доставки, акции,
+            особые условия, правила возврата — всё что должен знать ИИ-консультант.
+            Этот текст будет добавляться в промпт при каждом новом диалоге.
+          </p>
+          <textarea
+            className="form-textarea"
+            value={contextText}
+            onChange={e => setContextText(e.target.value)}
+            placeholder="Например:&#10;Режим работы: Пн-Вс с 10:00 до 23:00&#10;Зона доставки: весь город Ельня&#10;Минимальная сумма заказа: 500₽&#10;...и так далее"
+            style={{ minHeight: 300, fontSize: 14, lineHeight: 1.6 }}
+          />
+          <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="submit-btn" style={{ width: 'auto', padding: '10px 28px' }} onClick={saveContext}>
+              💾 Сохранить
+            </button>
+            {contextSaved && (
+              <span style={{ color: 'var(--emerald-light)', fontSize: 14 }}>✅ Сохранено!</span>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

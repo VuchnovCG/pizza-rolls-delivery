@@ -40,6 +40,17 @@ function getMenuContext() {
   }
 }
 
+function getKnowledgeBase() {
+  try {
+    const { getDb } = require('../db');
+    const db = getDb();
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'chat_context'").get();
+    return row?.value?.trim() || '';
+  } catch {
+    return '';
+  }
+}
+
 // POST /api/chat — отправить сообщение ИИ-консультанту
 router.post('/', async (req, res) => {
   const { message, session_id } = req.body;
@@ -57,8 +68,10 @@ router.post('/', async (req, res) => {
 
   const sid = session_id || 'ses_' + Date.now();
   if (!sessions[sid]) {
+    const kb = getKnowledgeBase();
+    const extraContext = kb ? `\n\nДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ О БИЗНЕСЕ:\n${kb}` : '';
     sessions[sid] = [
-      { role: 'system', content: SYSTEM_PROMPT + '\n\n' + getMenuContext() }
+      { role: 'system', content: SYSTEM_PROMPT + '\n\n' + getMenuContext() + extraContext }
     ];
   }
 

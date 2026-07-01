@@ -42,4 +42,30 @@ router.put('/password', (req, res) => {
   res.status(401).json({ error: 'Не авторизован' });
 });
 
+// ---- База знаний (контекст для ИИ) ----
+
+// GET /api/admin/context — получить контекст
+router.get('/context', (req, res) => {
+  const token = req.headers.authorization;
+  const db = getDb();
+  const stored = db.prepare("SELECT value FROM settings WHERE key = 'admin_token'").get();
+  if (!stored || token !== stored.value) {
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+  const ctx = db.prepare("SELECT value FROM settings WHERE key = 'chat_context'").get();
+  res.json({ context: ctx?.value || '' });
+});
+
+// PUT /api/admin/context — сохранить контекст
+router.put('/context', (req, res) => {
+  const { token, context } = req.body;
+  const db = getDb();
+  const stored = db.prepare("SELECT value FROM settings WHERE key = 'admin_token'").get();
+  if (!stored || token !== stored.value) {
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('chat_context', ?)").run(context || '');
+  res.json({ ok: true });
+});
+
 module.exports = router;
