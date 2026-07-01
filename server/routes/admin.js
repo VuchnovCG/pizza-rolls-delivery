@@ -68,4 +68,33 @@ router.put('/context', (req, res) => {
   res.json({ ok: true });
 });
 
+// ---- API ключ DeepSeek ----
+
+// GET /api/admin/deepseek-key — получить ключ (маскированный)
+router.get('/deepseek-key', (req, res) => {
+  const token = req.headers.authorization;
+  const db = getDb();
+  const stored = db.prepare("SELECT value FROM settings WHERE key = 'admin_token'").get();
+  if (!stored || token !== stored.value) {
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+  const row = db.prepare("SELECT value FROM settings WHERE key = 'deepseek_api_key'").get();
+  const key = row?.value || '';
+  // Показываем только первые 8 символов
+  const masked = key.length > 8 ? key.substring(0, 8) + '••••' : '';
+  res.json({ key, masked, hasKey: key.length > 0 });
+});
+
+// PUT /api/admin/deepseek-key — сохранить ключ
+router.put('/deepseek-key', (req, res) => {
+  const { token, key } = req.body;
+  const db = getDb();
+  const stored = db.prepare("SELECT value FROM settings WHERE key = 'admin_token'").get();
+  if (!stored || token !== stored.value) {
+    return res.status(401).json({ error: 'Не авторизован' });
+  }
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('deepseek_api_key', ?)").run(key || '');
+  res.json({ ok: true });
+});
+
 module.exports = router;

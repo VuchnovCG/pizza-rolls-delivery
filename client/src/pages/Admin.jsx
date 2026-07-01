@@ -16,6 +16,10 @@ export default function Admin({ onNavigate }) {
   const [checked, setChecked] = useState(false)
   const [contextText, setContextText] = useState('')
   const [contextSaved, setContextSaved] = useState(false)
+  const [deepseekKey, setDeepseekKey] = useState('')
+  const [deepseekKeyMasked, setDeepseekKeyMasked] = useState('')
+  const [deepseekHasKey, setDeepseekHasKey] = useState(false)
+  const [keySaved, setKeySaved] = useState(false)
 
   useEffect(() => {
     if (token) {
@@ -59,6 +63,25 @@ export default function Admin({ onNavigate }) {
     })
     setContextSaved(true)
     setTimeout(() => setContextSaved(false), 2000)
+  }
+
+  const loadDeepseekKey = async () => {
+    const res = await fetch('/api/admin/deepseek-key', { headers: { 'Authorization': token } })
+    const data = await res.json()
+    setDeepseekKey(data.key || '')
+    setDeepseekKeyMasked(data.masked || '')
+    setDeepseekHasKey(data.hasKey || false)
+  }
+
+  const saveDeepseekKey = async () => {
+    await fetch('/api/admin/deepseek-key', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, key: deepseekKey })
+    })
+    setKeySaved(true)
+    setTimeout(() => setKeySaved(false), 2000)
+    loadDeepseekKey()
   }
 
   const handleLogin = async (e) => {
@@ -174,6 +197,9 @@ export default function Admin({ onNavigate }) {
         </button>
         <button className={`admin-tab${tab === 'context' ? ' active' : ''}`} onClick={() => { setTab('context'); loadContext() }}>
           🧠 База знаний
+        </button>
+        <button className={`admin-tab${tab === 'deepseek' ? ' active' : ''}`} onClick={() => { setTab('deepseek'); loadDeepseekKey() }}>
+          🔑 API ключ
         </button>
       </div>
 
@@ -362,6 +388,40 @@ export default function Admin({ onNavigate }) {
             {contextSaved && (
               <span style={{ color: 'var(--emerald-light)', fontSize: 14 }}>✅ Сохранено!</span>
             )}
+          </div>
+        </div>
+      )}
+
+      {tab === 'deepseek' && (
+        <div style={{ maxWidth: 600 }}>
+          <h3 style={{ marginBottom: 8, color: 'var(--emerald-light)', fontSize: 18 }}>🔑 API ключ DeepSeek</h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+            Введи ключ от DeepSeek API, чтобы ИИ-консультант заработал.
+            Ключ хранится в базе данных и не зависит от переменных окружения Railway.
+          </p>
+          <div style={{ background: 'var(--bg-card)', padding: 20, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+            {deepseekHasKey && (
+              <p style={{ fontSize: 13, color: 'var(--emerald-light)', marginBottom: 12 }}>
+                ✅ Ключ установлен: <code style={{ background: 'var(--bg)', padding: '2px 8px', borderRadius: 4 }}>{deepseekKeyMasked}</code>
+              </p>
+            )}
+            <label className="form-label">DeepSeek API Key</label>
+            <input
+              className="form-input"
+              type="password"
+              value={deepseekKey}
+              onChange={e => setDeepseekKey(e.target.value)}
+              placeholder="sk-..."
+              style={{ fontFamily: 'monospace', fontSize: 14 }}
+            />
+            <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button className="submit-btn" style={{ width: 'auto', padding: '10px 28px' }} onClick={saveDeepseekKey}>
+                💾 Сохранить
+              </button>
+              {keySaved && (
+                <span style={{ color: 'var(--emerald-light)', fontSize: 14 }}>✅ Сохранено!</span>
+              )}
+            </div>
           </div>
         </div>
       )}

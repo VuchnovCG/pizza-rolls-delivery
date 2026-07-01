@@ -2,7 +2,18 @@ const express = require('express');
 const router = express.Router();
 
 const DEEPSEEK_API = 'https://api.deepseek.com/v1/chat/completions';
-const API_KEY = process.env.DEEPSEEK_API_KEY || '';
+
+function getApiKey() {
+  // Сначала проверяем переменную окружения (Railway)
+  if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY;
+  // Fallback: ключ из БД (задаётся через админку)
+  try {
+    const { getDb } = require('../db');
+    const db = getDb();
+    const row = db.prepare("SELECT value FROM settings WHERE key = 'deepseek_api_key'").get();
+    return row?.value?.trim() || '';
+  } catch { return ''; }
+}
 
 const SYSTEM_PROMPT = `Ты — дружелюбный консультант службы доставки Pizza & Rolls.
 
@@ -59,7 +70,8 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Пустое сообщение' });
   }
 
-  if (!API_KEY) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
     return res.json({
       reply: '🔧 ИИ-консультант временно не подключён. Пожалуйста, свяжитесь с оператором по телефону.',
       session_id: session_id || 'offline'
@@ -87,7 +99,7 @@ router.post('/', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
         model: 'deepseek-chat',
