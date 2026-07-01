@@ -5,12 +5,15 @@ import ProductCard from '../components/ProductCard'
 import Cart from '../components/Cart'
 import DeliveryForm from '../components/DeliveryForm'
 
+const DELIVERY_COST = 300
+
 export default function Shop({ onNavigate }) {
   const [menu, setMenu] = useState([])
   const [activeCat, setActiveCat] = useState(null)
   const [cart, setCart] = useState([])
   const [showDelivery, setShowDelivery] = useState(false)
   const [scrollToCart, setScrollToCart] = useState(false)
+  const [orderType, setOrderType] = useState('delivery')
 
   useEffect(() => {
     fetch('/api/menu')
@@ -23,7 +26,8 @@ export default function Shop({ onNavigate }) {
 
   const activeCategory = menu.find(c => c.slug === activeCat)
   const cartCount = cart.reduce((s, i) => s + i.qty, 0)
-  const cartTotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
+  const cartSubtotal = cart.reduce((s, i) => s + i.price * i.qty, 0)
+  const cartTotal = cartSubtotal + (orderType === 'delivery' ? DELIVERY_COST : 0)
 
   const addToCart = (item) => {
     setCart(c => {
@@ -76,12 +80,13 @@ export default function Shop({ onNavigate }) {
       {showDelivery && (
         <div className="modal-overlay" onClick={() => setShowDelivery(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-<DeliveryForm
-  total={cartTotal}
-  items={cart}
-  onBack={() => setShowDelivery(false)}
-  onSuccess={handleOrderSuccess}
-/>
+            <DeliveryForm
+              total={cartTotal}
+              items={cart}
+              orderType={orderType}
+              onBack={() => setShowDelivery(false)}
+              onSuccess={handleOrderSuccess}
+            />
           </div>
         </div>
       )}
@@ -107,6 +112,8 @@ export default function Shop({ onNavigate }) {
             items={cart}
             onUpdateQty={updateQty}
             onCheckout={handleCheckout}
+            orderType={orderType}
+            onOrderTypeChange={setOrderType}
           />
         </div>
       </div>

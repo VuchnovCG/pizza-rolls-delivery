@@ -5,22 +5,29 @@ const router = express.Router();
 
 // POST /api/orders — создать заказ
 router.post('/', (req, res) => {
-  const { items, total_price, customer_name, phone, address, entrance, floor, intercom, comment, delivery_time, payment_method, telegram_user_id } = req.body;
+  const { items, total_price, delivery_cost, order_type, customer_name, phone, address, pickup_address, entrance, floor, intercom, comment, delivery_time, payment_method, telegram_user_id } = req.body;
 
-  if (!items || !customer_name || !phone || !address) {
+  if (!items || !customer_name || !phone) {
     return res.status(400).json({ error: 'Заполните обязательные поля' });
+  }
+
+  if (order_type !== 'pickup' && !address) {
+    return res.status(400).json({ error: 'Укажите адрес доставки' });
   }
 
   const db = getDb();
   const result = db.prepare(`
-    INSERT INTO orders (items, total_price, customer_name, phone, address, entrance, floor, intercom, comment, delivery_time, payment_method, telegram_user_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO orders (items, total_price, delivery_cost, order_type, customer_name, phone, address, pickup_address, entrance, floor, intercom, comment, delivery_time, payment_method, telegram_user_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     JSON.stringify(items),
     total_price,
+    delivery_cost || 0,
+    order_type || 'delivery',
     customer_name,
     phone,
-    address,
+    address || null,
+    pickup_address || null,
     entrance || null,
     floor || null,
     intercom || null,

@@ -39,10 +39,12 @@ function initSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       items TEXT NOT NULL,
       total_price INTEGER NOT NULL,
+      delivery_cost INTEGER DEFAULT 0,
+      order_type TEXT DEFAULT 'delivery',
       customer_name TEXT NOT NULL,
       phone TEXT NOT NULL,
-      address TEXT NOT NULL,
-      telegram_user_id TEXT,
+      address TEXT,
+      pickup_address TEXT,
       entrance TEXT,
       floor TEXT,
       intercom TEXT,
@@ -51,6 +53,7 @@ function initSchema() {
       payment_method TEXT DEFAULT 'cash',
       payment_status TEXT DEFAULT 'pending',
       status TEXT DEFAULT 'new',
+      telegram_user_id TEXT,
       created_at TEXT DEFAULT (datetime('now', '+3 hours'))
     );
 

@@ -169,6 +169,7 @@ export default function Admin({ onNavigate }) {
                   <th>Telegram</th>
                   <th>Товары</th>
                   <th>Сумма</th>
+                  <th>Способ</th>
                   <th>Адрес</th>
                   <th>Оплата</th>
                   <th>Статус</th>
@@ -195,10 +196,25 @@ export default function Admin({ onNavigate }) {
                         <div key={i}>{item.image} {item.name} ×{item.qty}</div>
                       )) : order.items}
                     </td>
-                    <td style={{ color: 'var(--emerald-light)', fontWeight: 600 }}>{order.total_price} ₽</td>
+                    <td style={{ color: 'var(--emerald-light)', fontWeight: 600 }}>{order.total_price} ₽
+                      {order.delivery_cost > 0 && <div style={{ fontWeight: 400, fontSize: 11, color: 'var(--text-muted)' }}>+{order.delivery_cost} дост.</div>}
+                    </td>
+                    <td style={{ fontSize: 12 }}>
+                      {order.order_type === 'pickup' ? (
+                        <span style={{ color: 'var(--warning)' }}>📍 Самовывоз</span>
+                      ) : (
+                        <span style={{ color: 'var(--emerald-light)' }}>🚚 Доставка</span>
+                      )}
+                    </td>
                     <td style={{ fontSize: 13, maxWidth: 200 }}>
-                      <div>{order.address}</div>
-                      {order.entrance && <div style={{ color: 'var(--text-muted)' }}>П: {order.entrance}, Эт: {order.floor}, Дом: {order.intercom}</div>}
+                      {order.order_type === 'pickup' ? (
+                        <div style={{ color: 'var(--emerald-light)' }}>📍 {order.pickup_address || 'Самовывоз'}</div>
+                      ) : (
+                        <>
+                          <div>{order.address}</div>
+                          {order.entrance && <div style={{ color: 'var(--text-muted)' }}>П: {order.entrance}, Эт: {order.floor}, Дом: {order.intercom}</div>}
+                        </>
+                      )}
                       {order.comment && <div style={{ color: 'var(--warning)', fontSize: 12 }}>📝 {order.comment}</div>}
                     </td>
                     <td style={{ fontSize: 13 }}>
