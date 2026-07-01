@@ -61,7 +61,7 @@ router.post('/', async (req, res) => {
 
   if (!API_KEY) {
     return res.json({
-      reply: '🔧 ИИ-консультант暂时 не подключён. Оператор скоро ответит вам в Telegram.',
+      reply: '🔧 ИИ-консультант временно не подключён. Оператор скоро ответит вам в Telegram.',
       session_id: session_id || 'offline'
     });
   }
