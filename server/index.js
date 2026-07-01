@@ -8,7 +8,6 @@ const adminRoutes = require('./routes/admin');
 const paymentRoutes = require('./routes/payment');
 const uploadRoutes = require('./routes/upload');
 const chatRoutes = require('./routes/chat');
-const testEnvRoutes = require('../test_env');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -23,7 +22,18 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
-app.use('/api/test', testEnvRoutes);
+
+// DEBUG: check env variables — временный роут
+app.get('/api/debug/env', (req, res) => {
+  const key = process.env.DEEPSEEK_API_KEY || '';
+  res.json({
+    hasKey: key.length > 0,
+    keyLength: key.length,
+    keyPrefix: key.substring(0, Math.min(8, key.length)),
+    nodeEnv: process.env.NODE_ENV || 'not set',
+    envKeys: Object.keys(process.env).filter(k => /DEEP|API|KEY/i.test(k))
+  });
+});
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
