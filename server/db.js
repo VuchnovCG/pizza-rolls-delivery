@@ -69,6 +69,12 @@ function initSchema() {
     db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('admin_password', 'admin123');
   }
 
+  // Seed DeepSeek API key if not exists (чтобы не слетал при деплое)
+  const existingKey = db.prepare("SELECT key FROM settings WHERE key = 'deepseek_api_key'").get();
+  if (!existingKey) {
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('deepseek_api_key', ?)").run('sk-537ab08c9bed489693ba894e3ca138de');
+  }
+
   // Seed categories and menu if empty
   const catCount = db.prepare('SELECT COUNT(*) as c FROM categories').get().c;
   if (catCount === 0) {

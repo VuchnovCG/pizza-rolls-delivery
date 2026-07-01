@@ -12,22 +12,6 @@ const chatRoutes = require('./routes/chat');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Seed DeepSeek API key from env into DB (на случай если Railway передаст переменную)
-const { getDb } = require('./db');
-try {
-  const envKey = process.env.DEEPSEEK_API_KEY;
-  if (envKey) {
-    const db = getDb();
-    const existing = db.prepare("SELECT value FROM settings WHERE key = 'deepseek_api_key'").get();
-    if (!existing?.value) {
-      db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('deepseek_api_key', ?)").run(envKey);
-      console.log('✅ DeepSeek API key seeded from env into DB');
-    }
-  }
-} catch (e) {
-  console.log('⚠️ Could not seed API key:', e.message);
-}
-
 app.use(cors());
 app.use(express.json());
 
